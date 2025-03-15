@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -14,9 +13,14 @@ import Footer from './components/Footer';
 import { cn } from './utils/cn';
 
 function App() {
-  const [isLoading, setIsLoading] = useState(false);
-  const { selectedMatches, setPredictions, predictions, favorites } = usePredictionStore();
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const { 
+    selectedMatches, 
+    predictions, 
+    favorites,
+    isLoading,
+    generatePredictions
+  } = usePredictionStore();
 
   // Track scroll position for scroll-to-top button
   useEffect(() => {
@@ -29,33 +33,6 @@ function App() {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleRunPredictions = async () => {
-    const validMatches = selectedMatches.filter((match) => match?.homeTeam && match?.awayTeam);
-    if (validMatches.length === 0) return;
-
-    setIsLoading(true);
-    try {
-      const results = await Promise.all(
-        validMatches.map((match) =>
-          getPrediction(match!.homeTeam.name, match!.awayTeam.name)
-        )
-      );
-      setPredictions(results);
-      
-      // Scroll to predictions section
-      const predictionElement = document.getElementById('predictions-results');
-      if (predictionElement) {
-        setTimeout(() => {
-          predictionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 300);
-      }
-    } catch (error) {
-      console.error('Failed to fetch predictions:', error);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   // Get counts of complete and incomplete matches
@@ -108,7 +85,7 @@ function App() {
                   (isLoading || !selectedMatches.some((m) => m?.homeTeam && m?.awayTeam)) && 
                   "opacity-50 cursor-not-allowed"
                 )}
-                onClick={handleRunPredictions}
+                onClick={generatePredictions}
                 disabled={isLoading || !selectedMatches.some((m) => m?.homeTeam && m?.awayTeam)}
               >
                 {isLoading ? 'Analyzing Matches...' : 'Generate Predictions'}
